@@ -6,15 +6,26 @@ import model.Reservation;
 import model.Room;
 
 import java.sql.Array;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collection;
 import java.util.Date;
 
 public class ReservationService {
-    public static ReservationService service = new ReservationService();
-    private Collection<Reservation> reservations = new ArrayList<Reservation>();
-    private Collection<IRoom> rooms = new ArrayList<IRoom>();
+    private Collection<Reservation> reservations = new LinkedList<Reservation>();
+    private Collection<IRoom> rooms = new LinkedList<IRoom>();
 
+    private static ReservationService service = null;
+    private ReservationService(){
+
+    }
+
+
+    public static ReservationService getInstance(){
+        if(service == null){
+            service = new ReservationService();
+        }
+        return service;
+    }
 
     public void addRoom(IRoom room){
         if(! rooms.contains(room)){
@@ -38,18 +49,27 @@ public class ReservationService {
     }
 
     public Collection<IRoom> findRooms(Date checkInDate, Date checkOutDate){
-        Collection<IRoom> rooms = new ArrayList<>();
+        Collection<String> reservedRooms = new LinkedList<>();
+        Collection<IRoom> rooms = new LinkedList<>();
         for(Reservation r : reservations){
             if(checkOutDate.after(r.getCheckInDate())
                     && r.getCheckOutDate().after(checkInDate)){
-                rooms.add(r.getRoom());
+                reservedRooms.add(r.getRoom().getRoomNumber());
             }
+        }
+        for(IRoom room : getAllRooms()){
+            if(reservedRooms.contains(room.getRoomNumber())){
+                continue;
+            }
+            rooms.add(room);
         }
         return rooms;
     }
 
+
+
     public Collection<Reservation> getCustomersReservation(Customer customer){
-        Collection<Reservation> col = new ArrayList<>();
+        Collection<Reservation> col = new LinkedList<>();
         for(Reservation r : reservations) {
             if(customer.equals(r.getCustomer())){
                 col.add(r);
@@ -58,11 +78,11 @@ public class ReservationService {
         return col;
     }
 
-    public void printAllReservation(){
-        for(Reservation r : reservations){
-            System.out.println(r);
-        }
-    }
+//    public static void printAllReservation(){
+//        for(Reservation r : reservations){
+//            System.out.println(r);
+//        }
+//    }
 
     public Collection<IRoom> getAllRooms(){
         return rooms;

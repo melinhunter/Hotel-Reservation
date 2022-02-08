@@ -1,11 +1,18 @@
 package ui;
 
-import service.CustomerService;
+import api.AdminResource;
+import api.HotelResource;
+import model.Customer;
+import model.IRoom;
+import model.Reservation;
 
-import java.util.Scanner;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class MainMenu {
+    private static final HotelResource hotelResource = HotelResource.getInstance();
     public static void main(String[] args) {
         boolean exit = false;
         String userInput = null;
@@ -73,17 +80,171 @@ public class MainMenu {
                 email = input;
             }
         }
-        CustomerService service = CustomerService.service;
-        service.addCustomer(email, firstName, lastName);
+        hotelResource.createACustomer(email, firstName, lastName);
 
     }
 
-    private static void seeMyReservations() {
+    private static Customer getInputCustomerEmail(){
+        Customer customer = null;
+        while(customer == null){
+            String msg = "Please enter a valid customer email: [0 to exit] ";
+            String input = MyScanner.getInput(msg);
+            if(input.equals("0")){
+                return null;
+            }
+            customer = hotelResource.getCustomer(input);
+        }
+        return customer;
+    }
+
+    private static void seeMyReservations(){
+        Customer customer = getInputCustomerEmail();
+        if(customer == null){
+            System.out.println("Customer not found.");
+        }
+        else{
+            seeCustomerReservations(customer.getEmail());
+        }
+    }
+
+    private static void seeCustomerReservations(String email) {
+        Collection<Reservation> reservations = hotelResource.getCustomersReservations(email);
+        for(Reservation reservation : reservations){
+            System.out.println(reservation);
+        }
+    }
+
+
+    public static final String DATE_FORMATE = "MM/dd/yyyy";
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMATE);
+
+    private static Date transInputToDate(String dateString){
+        try {
+            return DATE_FORMAT.parse(dateString);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 
     private static void findAndReserveARoom() {
+        Date checkInDate = null;
+        Date checkOutDate = null;
+        Date recommendCheckInDate = null;
+        Date recommendCheckOutDate = null;
+        boolean checkDateErr = false;
+        while(checkInDate == null){
+            String msg = "check in date (MM/dd/yyyy):";
+            String input = MyScanner.getInput(msg);
+            checkInDate = transInputToDate(input);
+        }
+
+        while(checkOutDate == null){
+            String msg = "check in date (MM/dd/yyyy):";
+            String input = MyScanner.getInput(msg);
+            checkOutDate = transInputToDate(input);
+            if(checkInDate.after(checkOutDate)){
+                System.out.println(" check in date can't after check out date!!");
+                checkDateErr = false;
+            }
+        }
+        if(checkDateErr){
+            findAndReserveARoom();
+            return;
+        }
+        Collection<IRoom> rooms = HotelResource.findRooms(checkInDate, checkOutDate);
+        Collection<IRoom> recommandRooms = null;
+        Boolean wantToBookRoom = null;
+        if(rooms == null || rooms.isEmpty()){
+            recommendCheckInDate = getRecommendDate(checkInDate);
+            recommendCheckOutDate = getRecommendDate(checkOutDate);
+            recommandRooms = HotelResource.findRooms(recommendCheckInDate, recommendCheckOutDate);
+            System.out.println("There are no rooms available for the date you selected.");
+            if(recommandRooms !=  null && !recommandRooms.isEmpty()) {
+                System.out.println("Rooms available for alternative dates, check in on " + recommendCheckInDate + " and check out on " + recommendCheckOutDate);
+                displayRooms(recommandRooms);
+
+                while (wantToBookRoom) {
+                    String input = MyScanner.getInput("Do you like the room in the recommended date?? (Y/N)");
+                    if (input.length() == 1) {
+                        char inputChar = input.charAt(0);
+                        if (inputChar == 'Y' || inputChar == 'y') {
+                            wantToBookRoom = Boolean.TRUE;
+                            break;
+                        }
+                        if (inputChar == 'N' || inputChar == 'n') {
+                            wantToBookRoom = Boolean.FALSE;
+                            break;
+                        }
+                    }
+                }
+
+                if(wantToBookRoom){
+                    checkInDate = recommendCheckInDate;
+                    checkOutDate = recommendCheckOutDate;
+                    rooms = recommandRooms;
+                }
+            }
+            else{
+                return;
+            }
+        }
+        else{
+            displayRooms(rooms);
+            while(wantToBookRoom){
+                String input = MyScanner.getInput("Do you like any one of list rooms ? (Y/N)");
+                if(input.length() == 1){
+                    char inputChar = input.charAt(0);
+                    if(inputChar == 'Y' || inputChar == 'y'){
+                        wantToBookRoom = Boolean.TRUE;
+                        break;
+                    }
+                    if(inputChar == 'N' || inputChar == 'n'){
+                        wantToBookRoom = Boolean.FALSE;
+                        break;
+                    }
+                }
+            }
+        }
+        Map<String , IRoom> map = new HashMap<>();
+        for(IRoom room:rooms){
+            map.put(room.getRoomNumber(), room);
+        }
+        if(wantToBookRoom){
+            Customer customer = null;
+            IRoom room = null;
+            while(room == null){
+                String msg = "Reserve rom number:";
+                String input = MyScanner.getInput(msg);
+                room = map.get(input);
+                if(room != null){
+                    System.out.println(room);
+                }
+            }
+            customer = getInputCustomerEmail();
+            if(customer == null){
+                System.out.println("Customer not found.");
+            }
+            else {
+                hotelResource.reserveARoom(customer, room, checkInDate, checkOutDate);
+                if("Y".equalsIgnoreCase(MyScanner.getInput("see all customer reservations ? (y/Y to see)"))){
+                    seeCustomerReservations(customer.getEmail());
+                }
+            }
+        }
     }
 
+    private static void displayRooms(Collection<IRoom> rooms){
+        for(IRoom room : rooms){
+            System.out.println(rooms);
+        }
+    }
+
+    private static Date getRecommendDate(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.DATE, 7);
+        return c.getTime();
+    }
     public static void displayMenu(){
         System.out.println("Hotel Reservation Application");
         System.out.println("-----------------------------");

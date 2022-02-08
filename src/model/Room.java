@@ -3,9 +3,9 @@ package model;
 import java.util.Objects;
 
 public class Room implements IRoom {
-    String roomNumber;
-    Double price;
-    RoomType enumeration;
+    protected String roomNumber;
+    protected Double price;
+    protected RoomType enumeration;
 
     public Room(String roomNumber, Double price, RoomType enumeration) {
         this.roomNumber = roomNumber;

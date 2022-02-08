@@ -4,10 +4,10 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class Customer {
-    String firstName;
-    String lastName;
-    String email;
-    static String EMAIL_REGEX = "^(.+)@(.+).(.+)$";
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+    static final String EMAIL_REGEX = "^(.+)@(.+).(.+)$";
 
 
 

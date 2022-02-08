@@ -2,13 +2,22 @@ package service;
 
 import model.Customer;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collection;
 
 public class CustomerService {
-    public static CustomerService service = new CustomerService();
+    private Collection<Customer> customers = new LinkedList<Customer>();
+    private static CustomerService service = null;
+    private CustomerService(){
 
-    private Collection<Customer> customers = new ArrayList<Customer>();
+    }
+
+    public static CustomerService getInstance(){
+        if(service == null){
+            service = new CustomerService();
+        }
+        return service;
+    }
     public void addCustomer(String email, String firstName, String lastName){
         if(getCustomer(email) == null){
             Customer customer = new Customer(firstName, lastName, email);

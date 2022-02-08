@@ -1,13 +1,14 @@
 package ui;
 
 import model.*;
-import service.CustomerService;
-import service.ReservationService;
+import api.AdminResource;
+import api.HotelResource;
 
 import java.util.regex.Pattern;
 
 public class AdminMenu {
     private static final String INPUT_MSG = "Please select a number for the menu option";
+    public static final AdminResource adminResource = AdminResource.getInstance();
     public static void main(String[] args) {
         boolean exit = false;
         while(!exit) {
@@ -74,7 +75,7 @@ public class AdminMenu {
         else {
             room = new Room(roomNumber, price, roomType);
         }
-        ReservationService.service.addRoom(room);
+        adminResource.addRoom(room);
         boolean addOther = false;
         while(true){
             String input = MyScanner.getInput("Do you want add other room ? (Y/N)");
@@ -96,22 +97,19 @@ public class AdminMenu {
     }
 
     private static void seeAllReservations() {
-        ReservationService service = ReservationService.service;
-        for(Reservation reservation : service.getAllReservations()){
+        for(Reservation reservation : adminResource.getAllReservations()){
             System.out.println(reservation);
         }
     }
 
     private static void seeAllRooms() {
-        ReservationService service = ReservationService.service;
-        for(IRoom room : service.getAllRooms()){
+        for(IRoom room :  adminResource.getAllRooms()){
             System.out.println(room);
         }
     }
 
     private static void seeAllCustomers() {
-        CustomerService service = CustomerService.service;
-        for(Customer customer : service.getAllCustomer()){
+        for(Customer customer : adminResource.getAllCustomers()){
             System.out.println(customer);
         }
     }
