@@ -25,7 +25,7 @@ public class AdminResource {
     }
 
     public Collection<IRoom> getAllRooms(){
-        return null;
+        return ReservationService.getInstance().getAllRooms();
     }
 
     public Collection<Customer> getAllCustomers(){

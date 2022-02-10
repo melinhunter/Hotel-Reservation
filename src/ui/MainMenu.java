@@ -139,7 +139,7 @@ public class MainMenu {
         }
 
         while(checkOutDate == null){
-            String msg = "check in date (MM/dd/yyyy):";
+            String msg = "check out date (MM/dd/yyyy):";
             String input = MyScanner.getInput(msg);
             checkOutDate = transInputToDate(input);
             if(checkInDate.after(checkOutDate)){
@@ -153,7 +153,7 @@ public class MainMenu {
         }
         Collection<IRoom> rooms = HotelResource.findRooms(checkInDate, checkOutDate);
         Collection<IRoom> recommandRooms = null;
-        Boolean wantToBookRoom = null;
+        String wantToBookRoom = null;
         if(rooms == null || rooms.isEmpty()){
             recommendCheckInDate = getRecommendDate(checkInDate);
             recommendCheckOutDate = getRecommendDate(checkOutDate);
@@ -163,22 +163,22 @@ public class MainMenu {
                 System.out.println("Rooms available for alternative dates, check in on " + recommendCheckInDate + " and check out on " + recommendCheckOutDate);
                 displayRooms(recommandRooms);
 
-                while (wantToBookRoom) {
+                while (wantToBookRoom == null) {
                     String input = MyScanner.getInput("Do you like the room in the recommended date?? (Y/N)");
                     if (input.length() == 1) {
                         char inputChar = input.charAt(0);
                         if (inputChar == 'Y' || inputChar == 'y') {
-                            wantToBookRoom = Boolean.TRUE;
+                            wantToBookRoom = "true";
                             break;
                         }
                         if (inputChar == 'N' || inputChar == 'n') {
-                            wantToBookRoom = Boolean.FALSE;
+                            wantToBookRoom = "false";
                             break;
                         }
                     }
                 }
 
-                if(wantToBookRoom){
+                if(wantToBookRoom.equalsIgnoreCase("true")){
                     checkInDate = recommendCheckInDate;
                     checkOutDate = recommendCheckOutDate;
                     rooms = recommandRooms;
@@ -190,16 +190,16 @@ public class MainMenu {
         }
         else{
             displayRooms(rooms);
-            while(wantToBookRoom){
-                String input = MyScanner.getInput("Do you like any one of list rooms ? (Y/N)");
+            while(wantToBookRoom == null) {
+                String input = MyScanner.getInput("Do you like any one of list room(s) ? (Y/N)");
                 if(input.length() == 1){
                     char inputChar = input.charAt(0);
                     if(inputChar == 'Y' || inputChar == 'y'){
-                        wantToBookRoom = Boolean.TRUE;
+                        wantToBookRoom = "true";
                         break;
                     }
                     if(inputChar == 'N' || inputChar == 'n'){
-                        wantToBookRoom = Boolean.FALSE;
+                        wantToBookRoom = "false";
                         break;
                     }
                 }
@@ -209,7 +209,7 @@ public class MainMenu {
         for(IRoom room:rooms){
             map.put(room.getRoomNumber(), room);
         }
-        if(wantToBookRoom){
+        if(wantToBookRoom.equalsIgnoreCase("true")){
             Customer customer = null;
             IRoom room = null;
             while(room == null){
