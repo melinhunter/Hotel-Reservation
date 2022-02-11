@@ -49,14 +49,8 @@ public class ReservationService {
     }
 
     public Collection<IRoom> findRooms(Date checkInDate, Date checkOutDate){
-        Collection<String> reservedRooms = new LinkedList<>();
+        Collection<String> reservedRooms = findReservedRooms(checkInDate, checkOutDate)
         Collection<IRoom> rooms = new LinkedList<>();
-        for(Reservation r : reservations){
-            if(checkOutDate.after(r.getCheckInDate())
-                    && r.getCheckOutDate().after(checkInDate)){
-                reservedRooms.add(r.getRoom().getRoomNumber());
-            }
-        }
         for(IRoom room : getAllRooms()){
             if(reservedRooms.contains(room.getRoomNumber())){
                 continue;
@@ -66,7 +60,16 @@ public class ReservationService {
         return rooms;
     }
 
-
+    Collection<String> findReservedRooms(Date checkInDate, Date checkOutDate){
+        Collection<String> reservedRooms = new LinkedList<>();
+        for(Reservation r : reservations){
+            if(checkOutDate.after(r.getCheckInDate())
+                    && r.getCheckOutDate().after(checkInDate)){
+                reservedRooms.add(r.getRoom().getRoomNumber());
+            }
+        }
+        return reservedRooms;
+    }
 
     public Collection<Reservation> getCustomersReservation(Customer customer){
         Collection<Reservation> col = new LinkedList<>();
